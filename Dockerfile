@@ -4,7 +4,7 @@ LABEL maintainer="Don <novaspirit@novaspirit.com>"
 
 RUN apk add --no-cache sudo git xfce4 faenza-icon-theme bash python3 tigervnc xfce4-terminal firefox cmake \
     pulseaudio xfce4-pulseaudio-plugin pavucontrol pulseaudio-alsa alsa-plugins-pulse alsa-lib-dev nodejs npm \
-    build-base \
+    build-base openssh-client \
     && adduser -h /home/sentrinel -s /bin/bash -S -D sentrinel && echo -e "sentrinel\nsentrinel" | passwd sentrinel \
     && echo 'sentrinel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
     && git clone --branch v1.5.0 --depth 1 https://github.com/novnc/noVNC /opt/noVNC \
