@@ -1,0 +1,93 @@
+FROM nvidia/cudagl:12.4.0-devel-ubuntu22.04
+
+LABEL maintainer="Don <novaspirit@novaspirit.com>"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update & install desktop + VNC + audio + tools
+RUN apt-get update && apt-get install -y \
+    sudo git ca-certificates \
+    xfce4 xfce4-goodies xfce4-terminal \
+    tigervnc-standalone-server \
+    firefox \
+    pulseaudio pavucontrol \
+    dbus-x11 \
+    nodejs npm \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# User sentrinel
+RUN useradd -m -s /bin/bash sentrinel \
+    && echo "sentrinel:sentrinel" | chpasswd \
+    && usermod -aG sudo sentrinel \
+    && echo 'sentrinel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+# Clone noVNC + websockify
+RUN git clone --branch v1.5.0 --depth 1 https://github.com/novnc/noVNC /opt/noVNC \
+    && git clone --branch v0.12.0 --depth 1 https://github.com/novnc/websockify /opt/noVNC/utils/websockify
+
+# Copy custom noVNC files
+COPY script.js /opt/noVNC/script.js
+COPY audify.cjs /opt/noVNC/audify.cjs
+COPY vnc.html /opt/noVNC/vnc.html
+COPY pcm-player.js /opt/noVNC/pcm-player.js
+
+# Install Node deps for audify / ws
+RUN npm install --prefix /opt/noVNC ws \
+    && npm install --prefix /opt/noVNC audify
+
+# Konfigurasi VNC untuk user sentrinel
+USER sentrinel
+WORKDIR /home/sentrinel
+
+RUN mkdir -p /home/sentrinel/.vnc \
+    && echo "-SecurityTypes=none" > /home/sentrinel/.vnc/config \
+    && printf '#!/bin/bash\nstartxfce4 &\n' > /home/sentrinel/.vnc/xstartup \
+    && chmod +x /home/sentrinel/.vnc/xstartup \
+    && printf 'sentrinel\nsentrinel\nn\n' | vncpasswd
+
+USER root
+
+# Wallpaper
+COPY tao.png /usr/share/backgrounds/tao.png
+
+RUN mkdir -p /etc/xdg/xfce4/xfconf/xfce-perchannel-xml && \
+    cat > /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?> 
+<channel name="xfce4-desktop" version="1.0">
+  <property name="backdrop" type="empty">
+    <property name="screen0" type="empty">
+      <property name="monitor0" type="empty">
+        <property name="image-path" type="string" value="/usr/share/backgrounds/tao.png"/>
+        <property name="last-image" type="string" value="/usr/share/backgrounds/tao.png"/>
+        <property name="image-style" type="int" value="5"/>
+      </property>
+    </property>
+  </property>
+</channel>
+EOF
+
+# Entrypoint: VNC + audio + audify + noVNC
+RUN cat <<'EOF' > /entry.sh
+#!/bin/bash
+set -e
+
+# Start pulseaudio
+pulseaudio --start
+
+# Start VNC server (display :99, port 5999)
+sudo -u sentrinel vncserver :99
+
+# Start audify TCP server
+node /opt/noVNC/audify.cjs 2>&1 | sed "s/^/[audify    ] /" &
+
+# Start noVNC proxy ke VNC
+/opt/noVNC/utils/novnc_proxy --vnc localhost:5999 2>&1 | sed "s/^/[noVNC     ] /"
+EOF
+
+RUN chmod +x /entry.sh
+
+USER sentrinel
+WORKDIR /home/sentrinel
+
+ENTRYPOINT ["/bin/bash", "/entry.sh"]
