@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     firefox \
     pulseaudio pavucontrol \
     dbus-x11 \
+    autocutsel \
     nodejs npm \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
@@ -42,7 +43,7 @@ WORKDIR /home/sentrinel
 
 RUN mkdir -p /home/sentrinel/.vnc \
     && echo "-SecurityTypes=none" > /home/sentrinel/.vnc/config \
-    && printf '#!/bin/bash\nxrdb $HOME/.Xresources\nstartxfce4 &\n# disable screen blanking and DPMS\nxset -dpms\nxset s off\nxset s noblank\n' > /home/sentrinel/.vnc/xstartup \
+    && printf '#!/bin/bash\nxrdb $HOME/.Xresources\nautocutsel -fork &\nautocutsel -selection PRIMARY -fork &\nstartxfce4 &\n# disable screen blanking and DPMS\nxset -dpms\nxset s off\nxset s noblank\n' > /home/sentrinel/.vnc/xstartup \
     && chmod +x /home/sentrinel/.vnc/xstartup \
     && printf 'sentrinel\nsentrinel\nn\n' | vncpasswd
 
