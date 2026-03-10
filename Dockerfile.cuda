@@ -67,6 +67,21 @@ RUN mkdir -p /etc/xdg/xfce4/xfconf/xfce-perchannel-xml && \
   </property>
 </channel>
 EOF
+    && cat > /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfce4-power-manager" version="1.0">
+  <property name="inactivity-on-ac" type="int" value="0"/>
+  <property name="inactivity-on-battery" type="int" value="0"/>
+  <property name="power-button-action" type="uint" value="0"/>
+  <property name="lid-action-on-ac" type="uint" value="0"/>
+  <property name="lid-action-on-battery" type="uint" value="0"/>
+  <property name="blank-on-ac" type="int" value="0"/>
+  <property name="blank-on-battery" type="int" value="0"/>
+  <property name="dpms-enabled" type="bool" value="false"/>
+  <property name="dpms-on-ac-off" type="int" value="0"/>
+  <property name="dpms-on-battery-off" type="int" value="0"/>
+</channel>
+EOF
 
 # Entrypoint: VNC + audio + audify + noVNC
 RUN cat <<'EOF' > /entry.sh
