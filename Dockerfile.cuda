@@ -42,7 +42,7 @@ WORKDIR /home/sentrinel
 
 RUN mkdir -p /home/sentrinel/.vnc \
     && echo "-SecurityTypes=none" > /home/sentrinel/.vnc/config \
-    && printf '#!/bin/bash\nstartxfce4 &\n' > /home/sentrinel/.vnc/xstartup \
+    && printf '#!/bin/bash\nxrdb $HOME/.Xresources\nstartxfce4 &\n# disable screen blanking and DPMS\nxset -dpms\nxset s off\nxset s noblank\n' > /home/sentrinel/.vnc/xstartup \
     && chmod +x /home/sentrinel/.vnc/xstartup \
     && printf 'sentrinel\nsentrinel\nn\n' | vncpasswd
 
