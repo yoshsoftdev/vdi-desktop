@@ -67,7 +67,8 @@ RUN mkdir -p /etc/xdg/xfce4/xfconf/xfce-perchannel-xml && \
   </property>
 </channel>
 EOF
-    && cat > /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml <<'EOF'
+
+RUN cat > /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfce4-power-manager" version="1.0">
   <property name="inactivity-on-ac" type="int" value="0"/>
