@@ -7,6 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Update & install desktop + VNC + audio + tools
 RUN apt-get update && apt-get install -y \
     sudo git ca-certificates \
+    software-properties-common \
     xfce4 xfce4-goodies xfce4-terminal \
     tigervnc-standalone-server \
     firefox \
@@ -16,6 +17,23 @@ RUN apt-get update && apt-get install -y \
     nodejs npm \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
+
+# Python 3.10 + ML stack (PyTorch + torchvision, CUDA for Quadro P5000)
+RUN add-apt-repository -y ppa:deadsnakes/ppa \
+    && apt-get update \
+    && apt-get install -y \
+    python3.10 \
+    python3.10-venv \
+    python3.10-dev \
+    python3.10-distutils \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 \
+    && python3.10 -m pip install --no-cache-dir --upgrade pip \
+    && python3.10 -m pip install --no-cache-dir \
+    torch torchvision \
+    --index-url https://download.pytorch.org/whl/cu118 \
+    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1 \
+    && ln -sf /usr/bin/python3.10 /usr/local/bin/python3.10
 
 # User sentrinel
 RUN useradd -m -s /bin/bash sentrinel \
